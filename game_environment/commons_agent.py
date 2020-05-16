@@ -4,7 +4,7 @@ from gym.spaces import Box
 from gym.spaces import Discrete
 import numpy as np
 
-from ..envs.agent import BASE_ACTIONS, Agent
+from .agent import BASE_ACTIONS, Agent
 
 HARVEST_ACTIONS = BASE_ACTIONS.copy()
 HARVEST_ACTIONS.update({7: 'FIRE'})  # Fire a penalty beam

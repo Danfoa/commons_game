@@ -1,9 +1,15 @@
 """Base class for an agent that defines the possible actions. """
 
+# Standard library imports
+
+# Third party imports
+import numpy as np
 from gym.spaces import Box
 from gym.spaces import Discrete
-import numpy as np
-import commons_game.utility_funcs as util
+
+# Local application imports
+from ..utils import utility_funcs
+
 
 # basic moves every agent should do
 BASE_ACTIONS = {0: 'MOVE_LEFT',  # Move left
@@ -76,7 +82,7 @@ class Agent(object):
         raise NotImplementedError
 
     def get_state(self):
-        return util.return_view(self.grid, self.get_pos(),
+        return utility_funcs.return_view(self.grid, self.get_pos(),
                            self.row_size, self.col_size)
 
     def compute_reward(self):
@@ -207,66 +213,3 @@ class HarvestAgent(Agent):
             return self.pos
         else:
             return super(HarvestAgent, self).return_valid_pos(new_pos)
-
-    # def update_agent_pos(self, new_pos):
-    #     # Agent is in timeout
-    #     if self.remaining_timeout > 0:
-    #         self.remaining_timeout -= 1
-    #         # Agent is coming out of timeout
-    #         if self.remaining_timeout == 0:
-    #             # Place agent in starting position
-    #             return
-    #     # Agent is not in timeout
-    #     else:
-    #         # Update position normaly
-    #         super(HarvestAgent, self).update_agent_pos(new_pos)
-
-
-CLEANUP_ACTIONS = BASE_ACTIONS.copy()
-CLEANUP_ACTIONS.update({7: 'FIRE',  # Fire a penalty beam
-                        8: 'CLEAN'})  # Fire a cleaning beam
-
-CLEANUP_VIEW_SIZE = 7
-
-
-class CleanupAgent(Agent):
-    def __init__(self, agent_id, start_pos, start_orientation, grid, view_len=CLEANUP_VIEW_SIZE):
-        self.view_len = view_len
-        super().__init__(agent_id, start_pos, start_orientation, grid, view_len, view_len)
-        # remember what you've stepped on
-        self.update_agent_pos(start_pos)
-        self.update_agent_rot(start_orientation)
-
-    @property
-    def action_space(self):
-        return Discrete(9)
-
-    @property
-    def observation_space(self):
-        return Box(low=0.0, high=0.0, shape=(2 * self.view_len + 1,
-                                             2 * self.view_len + 1, 3), dtype=np.float32)
-
-    # Ugh, this is gross, this leads to the actions basically being
-    # defined in two places
-    def action_map(self, action_number):
-        """Maps action_number to a desired action in the map"""
-        return CLEANUP_ACTIONS[action_number]
-
-    def fire_beam(self, char):
-        if char == 'F':
-            self.reward_this_turn -= 1
-
-    def get_done(self):
-        return False
-
-    def hit(self, char):
-        if char == 'F':
-            self.reward_this_turn -= 50
-
-    def consume(self, char):
-        """Defines how an agent interacts with the char it is standing on"""
-        if char == 'A':
-            self.reward_this_turn += 1
-            return ' '
-        else:
-            return char

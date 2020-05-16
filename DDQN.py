@@ -68,7 +68,7 @@ class DDQNAgent:  # Double Deep Q-Network
         self.target_model = target_model
         # gradient clip
         opt = tf.keras.optimizers.Adam(learning_rate=learning_rate, clipvalue=10.0)
-        self.model.compile(optimizer=opt, loss='mse')
+        self.model.compile(optimizer=opt, loss=tf.keras.losses.MeanSquaredError())
         self.model.build((None,) + obs_shape)
         self.target_model.build((None,) + obs_shape)
         # print(self.model.summary())

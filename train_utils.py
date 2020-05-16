@@ -1,17 +1,18 @@
+# Standard library imports
 import os
 import sys
-import numpy as np
 import shutil
 import multiprocessing
 from multiprocessing import Process, Pool
 
+import numpy as np
 from tqdm import tqdm
 import tensorflow as tf
-from .social_dilemmas.common_game.commons_env import HarvestCommonsEnv
 
+# Local application imports
+from .game_environment.commons_env import HarvestCommonsEnv
+from .game_environment.utils import utility_funcs
 from .DDQN import DDQNAgent, DeepQNet
-
-from . import utility_funcs
 
 
 MEDIUM_HARVEST_MAP = [
@@ -57,7 +58,7 @@ epsilon_dacay = 0.995
 N_AGENTS = 1
 REPLAY_BUFFER_SIZE = 200
 TARGET_UPDATE_ITERATION = 200
-EPISODE_RECORD_FREQ = int(EPISODES / 10)
+EPISODE_RECORD_FREQ = 10
 START_LEARNING = 100
 BATCH_SIZE = 8
 KERNEL_INITIALIZER = 'glorot_uniform'
@@ -66,6 +67,8 @@ AGENT_VIEW_RANGE = 5
 
 def train_agents(n_agents=4, map_type="small", logs_path="logs", n_episodes=EPISODES, n_steps=STEPS,
                  batch_size=BATCH_SIZE, lr=0.0015, gamma=0.99, epsilon=0.10, epsilon_dacay=0.995):
+
+    sys.stdout = open(os.path.join(logs_path, "console_output.out"), "w")
     # Configure expermiment logs
     metrics = None
     logdir = logs_path + "/MAP=%s-AGENTS=%d-lr=%.5f-e=%.2f-ed=%.3f-g=%.2f-b=%d" % (map_type, n_agents, lr, epsilon,
@@ -233,21 +236,3 @@ def gen_episode_video(models_path, map_type, n_agents, video_path):
     shutil.rmtree(video_path + "/imgs", ignore_errors=True)
 
 
-if __name__ == "__main__":
-
-    params1 = {"n_agents": 4, "map_type": "small", "logs_path": "logs", "n_episodes": EPISODES, "n_steps": STEPS,
-               "batch_size": BATCH_SIZE, "lr": 0.0015, "gamma": 0.99, "epsilon": 0.15, "epsilon_dacay": 0.995}
-
-    params2 = {"n_agents": 4, "map_type": "small", "logs_path": "logs", "n_episodes": EPISODES, "n_steps": STEPS,
-               "batch_size": BATCH_SIZE, "lr": 0.0005, "gamma": 0.99, "epsilon": 0.15, "epsilon_dacay": 0.999}
-
-    processes = []
-
-    for i, params in enumerate([params1.values(), params2.values()]):
-        p = Process(target=train_agents(), args=params, name="Exp%d" % i)
-        p.start()
-        processes.append(p)
-        print(p.name)
-
-    for p in processes:
-        p.join()
