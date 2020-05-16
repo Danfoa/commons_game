@@ -8,7 +8,7 @@ from gym.spaces import Box
 from gym.spaces import Discrete
 
 # Local application imports
-from ..utils import utility_funcs
+from .utils import utility_funcs
 
 
 # basic moves every agent should do

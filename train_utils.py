@@ -68,11 +68,12 @@ AGENT_VIEW_RANGE = 5
 def train_agents(n_agents=4, map_type="small", logs_path="logs", n_episodes=EPISODES, n_steps=STEPS,
                  batch_size=BATCH_SIZE, lr=0.0015, gamma=0.99, epsilon=0.10, epsilon_dacay=0.995):
 
-    sys.stdout = open(os.path.join(logs_path, "console_output.out"), "w")
     # Configure expermiment logs
     metrics = None
     logdir = logs_path + "/MAP=%s-AGENTS=%d-lr=%.5f-e=%.2f-ed=%.3f-g=%.2f-b=%d" % (map_type, n_agents, lr, epsilon,
                                                                                    epsilon_dacay, gamma, batch_size)
+    sys.stdout = open(os.path.join(logdir, "console_output.out"), "w")
+
     social_metrics_writer = tf.summary.create_file_writer(logdir + "/social_metrics")
 
     env = HarvestCommonsEnv(ascii_map=MAP[map_type], num_agents=n_agents, render=True,
