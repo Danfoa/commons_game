@@ -1,28 +1,17 @@
 import os
 import sys
-import glob
 import numpy as np
 import shutil
-import pandas as pd
-# import seaborn as sns
-import matplotlib.pyplot as plt
-import skimage
 import multiprocessing
 from multiprocessing import Process, Pool
 
 from tqdm import tqdm
 import tensorflow as tf
-from social_dilemmas.common_game.commons_env import HarvestCommonsEnv
-from social_dilemmas.envs.agent import BASE_ACTIONS, HARVEST_VIEW_SIZE
+from .social_dilemmas.common_game.commons_env import HarvestCommonsEnv
 
-from DDQN import DDQNAgent, DeepQNet
+from .DDQN import DDQNAgent, DeepQNet
 
-from joblib import Parallel, delayed
-import utility_funcs
-
-
-def train_agent_on_batch(agent):
-    return agent.train_step()
+from . import utility_funcs
 
 
 MEDIUM_HARVEST_MAP = [

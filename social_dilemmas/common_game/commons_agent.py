@@ -5,7 +5,8 @@ from gym.spaces import Discrete
 import numpy as np
 import utility_funcs as util
 
-from social_dilemmas.envs.agent import BASE_ACTIONS, Agent
+
+from ..envs.agent import BASE_ACTIONS, Agent
 
 HARVEST_ACTIONS = BASE_ACTIONS.copy()
 HARVEST_ACTIONS.update({7: 'FIRE'})  # Fire a penalty beam
