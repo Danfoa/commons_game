@@ -157,7 +157,7 @@ class HarvestAgent(Agent):
 
     def __init__(self, agent_id, start_pos, start_orientation, grid, view_len=HARVEST_VIEW_SIZE):
         self.view_len = view_len
-        # When hit, agent is cast away from map for `remaining_timeout` steps
+        # When hit, agent is cast away from map for `remaining_timeout` n_steps
         self.remaining_timeout = 0
 
         super().__init__(agent_id, start_pos, start_orientation, grid, view_len, view_len)

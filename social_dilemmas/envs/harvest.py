@@ -80,7 +80,7 @@ class HarvestCommonsEnv(MapEnv):
         for agent_id, agent in self.agents.items():
             if agent.remaining_timeout > 0:
                 agent.remaining_timeout -= 1
-                # print("Agent %s its on timeout for %d steps" % (agent_id, agent.remaining_timeout))
+                # print("Agent %s its on timeout for %d n_steps" % (agent_id, agent.remaining_timeout))
                 if not np.any(agent.pos == -1):
                     self.update_map([[agent.pos[0], agent.pos[1], '@']])
                     agent.pos = np.array([-1, -1])

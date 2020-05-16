@@ -22,7 +22,7 @@ class HarvestCommonsAgent(Agent):
 
         self.lateral_view_range = lateral_view_range
         self.frontal_view_range = frontal_view_range
-        # When hit, agent is cast away from map for `remaining_timeout` steps
+        # When hit, agent is cast away from map for `remaining_timeout` n_steps
         self.remaining_timeout = 0
 
         super().__init__(agent_id, start_pos, start_orientation, grid,
