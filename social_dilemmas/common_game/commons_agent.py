@@ -3,8 +3,6 @@
 from gym.spaces import Box
 from gym.spaces import Discrete
 import numpy as np
-import utility_funcs as util
-
 
 from ..envs.agent import BASE_ACTIONS, Agent
 
