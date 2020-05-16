@@ -3,7 +3,7 @@
 from gym.spaces import Box
 from gym.spaces import Discrete
 import numpy as np
-import utility_funcs as util
+import commons_game.utility_funcs as util
 
 # basic moves every agent should do
 BASE_ACTIONS = {0: 'MOVE_LEFT',  # Move left
@@ -77,7 +77,7 @@ class Agent(object):
 
     def get_state(self):
         return util.return_view(self.grid, self.get_pos(),
-                                self.row_size, self.col_size)
+                           self.row_size, self.col_size)
 
     def compute_reward(self):
         reward = self.reward_this_turn
@@ -153,6 +153,7 @@ HARVEST_ACTIONS.update({7: 'FIRE'})  # Fire a penalty beam
 HARVEST_VIEW_SIZE = 7
 TIMEOUT_TIME = 25
 
+
 class HarvestAgent(Agent):
 
     def __init__(self, agent_id, start_pos, start_orientation, grid, view_len=HARVEST_VIEW_SIZE):
@@ -163,8 +164,6 @@ class HarvestAgent(Agent):
         super().__init__(agent_id, start_pos, start_orientation, grid, view_len, view_len)
         self.update_agent_pos(start_pos)
         self.update_agent_rot(start_orientation)
-
-
 
     @property
     def action_space(self):
@@ -193,7 +192,7 @@ class HarvestAgent(Agent):
             self.reward_this_turn -= 0
 
     def get_done(self):
-        return False     # Agents never really reach a final state
+        return False  # Agents never really reach a final state
 
     def consume(self, char):
         """Defines how an agent interacts with the char it is standing on"""
@@ -221,7 +220,6 @@ class HarvestAgent(Agent):
     #     else:
     #         # Update position normaly
     #         super(HarvestAgent, self).update_agent_pos(new_pos)
-
 
 
 CLEANUP_ACTIONS = BASE_ACTIONS.copy()
