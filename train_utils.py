@@ -2,6 +2,7 @@
 import os
 import sys
 import shutil
+import time
 import multiprocessing
 from multiprocessing import Process, Pool
 
@@ -10,9 +11,9 @@ from tqdm import tqdm
 import tensorflow as tf
 
 # Local application imports
-from .game_environment.commons_env import HarvestCommonsEnv
-from .game_environment.utils import utility_funcs
-from .DDQN import DDQNAgent, DeepQNet
+from game_environment.commons_env import HarvestCommonsEnv
+from game_environment.utils import utility_funcs
+from DDQN import DDQNAgent, DeepQNet
 
 
 MEDIUM_HARVEST_MAP = [
@@ -50,6 +51,7 @@ MAP = {"small": SMALL_HARVEST_MAP,
 
 EPISODES = 1000
 STEPS = 1000
+BATCH_SIZE = 8
 
 LR = 0.0015
 gamma = 0.99
@@ -60,19 +62,18 @@ REPLAY_BUFFER_SIZE = 200
 TARGET_UPDATE_ITERATION = 200
 EPISODE_RECORD_FREQ = 10
 START_LEARNING = 100
-BATCH_SIZE = 8
 KERNEL_INITIALIZER = 'glorot_uniform'
 AGENT_VIEW_RANGE = 5
 
 
 def train_agents(n_agents=4, map_type="small", logs_path="logs", n_episodes=EPISODES, n_steps=STEPS,
-                 batch_size=BATCH_SIZE, lr=0.0015, gamma=0.99, epsilon=0.10, epsilon_dacay=0.995):
+                 batch_size=BATCH_SIZE, lr=0.0015, gamma=0.99, epsilon=0.10, epsilon_dacay=0.995, log=True):
 
     # Configure expermiment logs
-    metrics = None
     logdir = logs_path + "/MAP=%s-AGENTS=%d-lr=%.5f-e=%.2f-ed=%.3f-g=%.2f-b=%d" % (map_type, n_agents, lr, epsilon,
                                                                                    epsilon_dacay, gamma, batch_size)
-    sys.stdout = open(os.path.join(logdir, "console_output.out"), "w")
+    os.makedirs(logdir, exist_ok=True)
+    # sys.stdout = open(os.path.join(logdir, "console_output.out"), "w+")
 
     social_metrics_writer = tf.summary.create_file_writer(logdir + "/social_metrics")
 
@@ -93,8 +94,9 @@ def train_agents(n_agents=4, map_type="small", logs_path="logs", n_episodes=EPIS
                                           epsilon_decay=epsilon_dacay, gamma=gamma, batch_size=batch_size)
 
     for episode in range(n_episodes + 1):
-        print("Episode %d" % episode)
-        episode_path = logdir + "/n_episodes/episode=%04d" % episode
+        start_t = time.time()
+        print("- A:%d Episode %d" % (n_agents, episode))
+        episode_path = logdir + "/episodes/episode=%04d" % episode
         models_path = logdir + "/model/episode=%04d" % episode
         if episode % EPISODE_RECORD_FREQ == 0:
             os.makedirs(episode_path, exist_ok=True)
@@ -109,7 +111,7 @@ def train_agents(n_agents=4, map_type="small", logs_path="logs", n_episodes=EPIS
             ddqn_models[agent_id].reset_replay_buffer()
             ddqn_models[agent_id].e_decay()
 
-        for t in tqdm(range(1, n_steps), desc="Steps", position=0, leave=True, file=sys.stdout):
+        for t in tqdm(range(1, n_steps), desc="Steps", position=0, leave=True):
             # Select agent actions to take
             actions = {}
             for agent_id, agent in env.agents.items():
@@ -127,7 +129,6 @@ def train_agents(n_agents=4, map_type="small", logs_path="logs", n_episodes=EPIS
 
             # When enough experience is collected, start on-line learning
             if t > START_LEARNING:
-                # TODO: Paralelize
                 losses = []
                 for agent_id in env.agents.keys():
                     loss = ddqn_models[agent_id].train_step()
@@ -148,8 +149,6 @@ def train_agents(n_agents=4, map_type="small", logs_path="logs", n_episodes=EPIS
             if episode % EPISODE_RECORD_FREQ == 0:
                 env.render(episode_path + "/t=%04d.png" % t, title="t=%04d" % t)
 
-        # TODO: Save agent function approximators.
-
         # Log metrics to tensorboard
         social_metrics = env.get_social_metrics(episode_steps=n_steps)
         efficiency, equality, sustainability, peace = social_metrics
@@ -162,14 +161,9 @@ def train_agents(n_agents=4, map_type="small", logs_path="logs", n_episodes=EPIS
             agent_rewards = [np.sum(rewards) for rewards in env.rewards_record.values()]
             tf.summary.histogram('accumulated_reward', agent_rewards, step=episode)
 
-        if metrics is None:
-            metrics = np.array(social_metrics)
-        else:
-            metrics = np.vstack([metrics, np.array(social_metrics)])
-
         # Make video of episode
         if episode % EPISODE_RECORD_FREQ == 0:
-            utility_funcs.make_video_from_image_dir(vid_path=logdir + "/n_episodes",
+            utility_funcs.make_video_from_image_dir(vid_path=logdir + "/episodes",
                                                     img_folder=episode_path,
                                                     video_name="episode=%04d" % episode,
                                                     fps=10)
@@ -179,8 +173,7 @@ def train_agents(n_agents=4, map_type="small", logs_path="logs", n_episodes=EPIS
             for agent_id in env.agents.keys():
                 ddqn_models[agent_id].save_policy(path=models_path + "/%s" % agent_id)
 
-    # Save metrics as np array for easy plotting
-    np.save(logdir + "/social_metrics.npy", metrics)
+        print("- A:%d Episode %d - DONE in: %.3f min" % (n_agents, episode, (time.time() - start_t)/60))
 
 
 def gen_episode_video(models_path, map_type, n_agents, video_path):
@@ -237,3 +230,26 @@ def gen_episode_video(models_path, map_type, n_agents, video_path):
     shutil.rmtree(video_path + "/imgs", ignore_errors=True)
 
 
+if __name__ == "__main__":
+    logs_path = "logs"
+
+    params1 = {"n_agents": 7, "map_type": "medium", "logs_path": logs_path, "episodes": EPISODES, "n_steps": STEPS,
+               "batch_size": BATCH_SIZE, "lr": 0.0015, "gamma": 0.99, "epsilon": 0.15, "epsilon_dacay": 0.999,
+               "log": True}
+
+    params2 = {"n_agents": 2, "map_type": "small", "logs_path": logs_path, "episodes": EPISODES, "n_steps": STEPS,
+               "batch_size": BATCH_SIZE, "lr": 0.0015, "gamma": 0.99, "epsilon": 0.15, "epsilon_dacay": 0.999,
+               "log": False}
+
+    train_agents(**params1)
+    # processes = []
+    #
+    # for i, params in enumerate([params1.values(), params2.values()]):
+    #     p = Process(target=train_agents, args=params, name="Exp%d" % i)
+    #     p.start()
+    #     processes.append(p)
+    #     print(p.name)
+    #
+    # for p in processes:
+    #     p.join()
+    #
