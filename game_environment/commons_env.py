@@ -14,14 +14,75 @@ SPAWN_PROB = [0, 0.005, 0.02, 0.05]
 
 OUTCAST_POSITION = -99
 
+AGENT_COLOR = [181, 4, 10]  #
+DEFAULT_COLORMAP = {' ': [0, 0, 0],  # Black background
+                    '0': [0, 0, 0],  # Black background beyond map walls
+                    '': [180, 180, 180],  # Grey board walls
+                    '@': [180, 180, 180],  # Grey board walls
+                    'A': [0, 255, 0],  # Green apples
+                    'F': [255, 255, 0],  # Yellow fining beam
+                    'P': [159, 67, 255],  # Purple player
+
+                    # Colours for agents. R value is a unique identifier
+                    '1': AGENT_COLOR,
+                    '2': AGENT_COLOR,
+                    '3': AGENT_COLOR,
+                    '4': AGENT_COLOR,
+                    '5': AGENT_COLOR,
+                    '6': AGENT_COLOR,
+                    '7': AGENT_COLOR,
+                    '8': AGENT_COLOR,
+                    '9': AGENT_COLOR,
+                    '10': AGENT_COLOR,
+                    }
+
+MEDIUM_HARVEST_MAP = [
+    '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@',
+    '@P A P   A    A    A    A  A    A    @',
+    '@  AAA  AAA  AAA  AAA  AAAAAA  AAA   @',
+    '@ A A    A    A    A    A  A    A   P@',
+    '@PA             A      A       A     @',
+    '@ A   A    A    A    A  A A  A    A  @',
+    '@PAA AAA  AAA  AAA  AAA     AAA  AAA @',
+    '@ A   A    A  A A  A A   P   A    A  @',
+    '@PA                                P @',
+    '@ A    A    A    A    A  A    A    A @',
+    '@AAA  AAA  AAA  AAA  AA AAA  AAA  AA @',
+    '@ A    A    A    A    A  A    A    A @',
+    '@P A A A               P             @',
+    '@P  A    A    A    A       P     P   @',
+    '@  AAA  AAA  AAA  AAA         P    P @',
+    '@P  A    A    A    A   P   P  P  P   @',
+    '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@', ]
+
+SMALL_HARVEST_MAP = [
+    '@@@@@@@@@@@@@@@@@@@@@@@@@@',
+    '@P A    A    A    A  P AP@',
+    '@PAAA  AAA  AAA  AAA  AAA@',
+    '@  A    A    A    A    A @',
+    '@P                       @',
+    '@    A    A    A    A    @',
+    '@   AAA  AAA  AAA  AAA   @',
+    '@P P A    A    A    A P P@',
+    '@@@@@@@@@@@@@@@@@@@@@@@@@@', ]
+
+MAP = {"small": SMALL_HARVEST_MAP,
+       "medium": MEDIUM_HARVEST_MAP}
+
 
 class HarvestCommonsEnv(MapEnv):
 
-    def __init__(self, ascii_map=HARVEST_MAP, num_agents=1, render=False, agent_view_range=HARVEST_DEFAULT_VIEW_SIZE):
+    def __init__(self, ascii_map=HARVEST_MAP, num_agents=1, render=False, agent_view_range=HARVEST_DEFAULT_VIEW_SIZE,
+                 color_map=None):
+        if color_map is None:
+            color_map = DEFAULT_COLORMAP
         self.apple_points = []
         self.agent_view_range = agent_view_range
 
-        super().__init__(ascii_map, num_agents, render)
+        if color_map is None:
+            color_map = DEFAULT_COLORMAP
+
+        super().__init__(ascii_map, num_agents, render, color_map=color_map)
 
         self.rewards_record = {}
         self.timeout_record = {}
@@ -183,4 +244,3 @@ class HarvestCommonsEnv(MapEnv):
 
         return efficiency, equality, sustainability, peace
 
-    # def render_eposiode(self, timesteps, ):

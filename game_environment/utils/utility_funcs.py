@@ -26,7 +26,7 @@ def make_video_from_image_dir(vid_path, img_folder, video_name='trajectory', fps
 
 
 def make_video_from_rgb_imgs(rgb_arrs, vid_path, video_name='trajectory',
-                             fps=5, format="mp4v", resize=(640, 480)):
+                             fps=15, format="mp4v", resize=(640, 480)):
     """
     Create a video from a list of rgb arrays
     """

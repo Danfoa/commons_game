@@ -11,43 +11,12 @@ from tqdm import tqdm
 import tensorflow as tf
 
 # Local application imports
-from game_environment.commons_env import HarvestCommonsEnv
+from game_environment.commons_env import HarvestCommonsEnv, DEFAULT_COLORMAP, MAP
 from game_environment.utils import utility_funcs
 from DDQN import DDQNAgent, DeepQNet
+from game_environment.map_env import DEFAULT_COLOURS
 
 
-MEDIUM_HARVEST_MAP = [
-    '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@',
-    '@P   P   A    A    A    A  A    A    @',
-    '@  AAA  AAA  AAA  AAA  AAAAAA  AAA   @',
-    '@ A A    A    A    A    A  A    A   P@',
-    '@PA                                  @',
-    '@ A   A    A    A    A       A    A  @',
-    '@PA  AAA  AAA  AAA  AAA     AAA  AAA @',
-    '@ A   A    A    A    A   P   A    A  @',
-    '@PA                                P @',
-    '@ A    A    A    A    A  A    A    A @',
-    '@AAA  AAA  AAA  AAA  AA AAA  AAA  AA @',
-    '@ A    A    A    A    A  A    A    A @',
-    '@P                     P             @',
-    '@P  A    A    A    A       P     P   @',
-    '@  AAA  AAA  AAA  AAA         P    P @',
-    '@P  A    A    A    A   P   P  P  P   @',
-    '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@', ]
-
-SMALL_HARVEST_MAP = [
-    '@@@@@@@@@@@@@@@@@@@@@@@@@@',
-    '@P A    A    A    A    AP@',
-    '@ AAA  AAA  AAA  AAA  AAA@',
-    '@  A    A    A    A    A @',
-    '@                        @',
-    '@    A    A    A    A    @',
-    '@   AAA  AAA  AAA  AAA   @',
-    '@P   A    A    A    A   P@',
-    '@@@@@@@@@@@@@@@@@@@@@@@@@@', ]
-
-MAP = {"small": SMALL_HARVEST_MAP,
-       "medium": MEDIUM_HARVEST_MAP}
 
 EPISODES = 1000
 STEPS = 1000
@@ -59,7 +28,7 @@ epsilon = 0.15
 epsilon_dacay = 0.995
 N_AGENTS = 1
 REPLAY_BUFFER_SIZE = 200
-TARGET_UPDATE_ITERATION = 200
+TARGET_UPDATE_ITERATION = 20
 EPISODE_RECORD_FREQ = 10
 START_LEARNING = 100
 KERNEL_INITIALIZER = 'glorot_uniform'
@@ -67,11 +36,11 @@ AGENT_VIEW_RANGE = 5
 
 
 def train_agents(n_agents=4, map_type="small", logs_path="logs", n_episodes=EPISODES, n_steps=STEPS,
-                 batch_size=BATCH_SIZE, lr=0.0015, gamma=0.99, epsilon=0.10, epsilon_dacay=0.995, log=True):
+                 batch_size=BATCH_SIZE, lr=0.0015, gamma=0.99, epsilon=0.10, epsilon_decay=0.995, log=True):
 
     # Configure expermiment logs
     logdir = logs_path + "/MAP=%s-AGENTS=%d-lr=%.5f-e=%.2f-ed=%.3f-g=%.2f-b=%d" % (map_type, n_agents, lr, epsilon,
-                                                                                   epsilon_dacay, gamma, batch_size)
+                                                                                   epsilon_decay, gamma, batch_size)
     os.makedirs(logdir, exist_ok=True)
     # sys.stdout = open(os.path.join(logdir, "console_output.out"), "w+")
 
@@ -91,7 +60,7 @@ def train_agents(n_agents=4, map_type="small", logs_path="logs", n_episodes=EPIS
                                 kernel_initializer=KERNEL_INITIALIZER)
         ddqn_models[agent_id] = DDQNAgent(model=q_net_model, target_model=q_net_target, obs_shape=obs_shape,
                                           env=env, buffer_size=REPLAY_BUFFER_SIZE, learning_rate=lr, epsilon=epsilon,
-                                          epsilon_decay=epsilon_dacay, gamma=gamma, batch_size=batch_size)
+                                          epsilon_decay=epsilon_decay, gamma=gamma, batch_size=batch_size)
 
     for episode in range(n_episodes + 1):
         start_t = time.time()
@@ -233,23 +202,24 @@ def gen_episode_video(models_path, map_type, n_agents, video_path):
 if __name__ == "__main__":
     logs_path = "logs"
 
-    params1 = {"n_agents": 7, "map_type": "medium", "logs_path": logs_path, "episodes": EPISODES, "n_steps": STEPS,
-               "batch_size": BATCH_SIZE, "lr": 0.0015, "gamma": 0.99, "epsilon": 0.15, "epsilon_dacay": 0.999,
+
+    params1 = {"n_agents": 1, "map_type": "small", "logs_path": logs_path, "n_episodes": EPISODES, "n_steps": STEPS,
+               "batch_size": BATCH_SIZE, "lr": 0.0005, "gamma": 0.99, "epsilon": 0.15, "epsilon_decay": 0.999,
                "log": True}
-
-    params2 = {"n_agents": 2, "map_type": "small", "logs_path": logs_path, "episodes": EPISODES, "n_steps": STEPS,
-               "batch_size": BATCH_SIZE, "lr": 0.0015, "gamma": 0.99, "epsilon": 0.15, "epsilon_dacay": 0.999,
-               "log": False}
-
+    #
+    # params2 = {"n_agents": 2, "map_type": "small", "logs_path": logs_path, "episodes": EPISODES, "n_steps": STEPS,
+    #            "batch_size": BATCH_SIZE, "lr": 0.0015, "gamma": 0.99, "epsilon": 0.15, "epsilon_decay": 0.999,
+    #            "log": False}
+    #
     train_agents(**params1)
-    # processes = []
-    #
-    # for i, params in enumerate([params1.values(), params2.values()]):
-    #     p = Process(target=train_agents, args=params, name="Exp%d" % i)
-    #     p.start()
-    #     processes.append(p)
-    #     print(p.name)
-    #
-    # for p in processes:
-    #     p.join()
-    #
+    # # processes = []
+    # #
+    # # for i, params in enumerate([params1.values(), params2.values()]):
+    # #     p = Process(target=train_agents, args=params, name="Exp%d" % i)
+    # #     p.start()
+    # #     processes.append(p)
+    # #     print(p.name)
+    # #
+    # # for p in processes:
+    # #     p.join()
+    # #

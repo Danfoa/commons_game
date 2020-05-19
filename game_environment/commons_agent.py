@@ -9,7 +9,7 @@ from .agent import BASE_ACTIONS, Agent
 HARVEST_ACTIONS = BASE_ACTIONS.copy()
 HARVEST_ACTIONS.update({7: 'FIRE'})  # Fire a penalty beam
 
-HARVEST_DEFAULT_VIEW_SIZE = 7
+HARVEST_DEFAULT_VIEW_SIZE = 5
 TIMEOUT_TIME = 25
 
 
