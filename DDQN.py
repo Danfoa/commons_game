@@ -1,11 +1,3 @@
-"""
-A simple version of Double Deep Q-Network(DDQN), minor change to DQN.
-To play CartPole-v0.
-Using:
-TensorFlow 2.0
-Numpy 1.16.2
-Gym 0.12.1
-"""
 import os
 import tensorflow as tf
 

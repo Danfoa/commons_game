@@ -2,3 +2,4 @@
 /logs
 *.pyc
 *__py_cache__
+*__init__.py

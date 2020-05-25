@@ -80,7 +80,7 @@ def train_agents(n_agents=4, map_type="small", logs_path="logs", n_episodes=EPIS
             ddqn_models[agent_id].reset_replay_buffer()
             ddqn_models[agent_id].e_decay()
 
-        for t in tqdm(range(1, n_steps), desc="Steps", position=0, leave=True):
+        for t in tqdm(range(1, n_steps), position=0, leave=True):
             # Select agent actions to take
             actions = {}
             for agent_id, agent in env.agents.items():
